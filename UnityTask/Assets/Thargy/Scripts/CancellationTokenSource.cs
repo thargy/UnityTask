@@ -1,16 +1,33 @@
 ﻿#region Copyright (C) Craig Anthony Dean 2016 - All Rights Reserved
 
-// Copyright (C) Craig Anthony Dean 2016 - All Rights Reserved
-// Unauthorized copying of this file, via any medium is strictly prohibited
-// Proprietary and confidential
-// Written by Craig Anthony Dean<thargy@yahoo.com>
+// Copyright (C) Craig Anthony Dean 2016
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+// 
+// Written by Craig Anthony Dean <support@thargy.com>
 
 #endregion
 
 using System;
 using System.Threading;
 
-namespace Apocraphy.Assets.Scripts.Threading
+namespace Thargy.UnityTask
 {
     /// <summary>
     ///     Signals to a <see cref="CancellationToken" /> that it should be cancelled.
@@ -24,12 +41,12 @@ namespace Apocraphy.Assets.Scripts.Threading
 
 
         /// <summary>
-        /// An already cancelled <see cref="CancellationTokenSource"/>.
+        ///     An already cancelled <see cref="CancellationTokenSource" />.
         /// </summary>
         internal static readonly CancellationTokenSource Cancelled = new CancellationTokenSource(true);
 
         /// <summary>
-        /// A <see cref="CancellationTokenSource"/> that can never be cancelled.
+        ///     A <see cref="CancellationTokenSource" /> that can never be cancelled.
         /// </summary>
         internal static readonly CancellationTokenSource NotCancellable = new CancellationTokenSource(false);
 
@@ -37,9 +54,9 @@ namespace Apocraphy.Assets.Scripts.Threading
         ///     The timestamp to cancel after (if any)
         /// </summary>
         private long _cancelAfter;
-        
+
         /// <summary>
-        /// The internal state.
+        ///     The internal state.
         /// </summary>
         private int _state;
 
@@ -49,7 +66,7 @@ namespace Apocraphy.Assets.Scripts.Threading
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CancellationTokenSource"/> class.
+        ///     Initializes a new instance of the <see cref="CancellationTokenSource" /> class.
         /// </summary>
         /// <param name="cancelAfter">The duration to cancel after.</param>
         public CancellationTokenSource(TimeSpan cancelAfter)
@@ -58,7 +75,7 @@ namespace Apocraphy.Assets.Scripts.Threading
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CancellationTokenSource"/> class.
+        ///     Initializes a new instance of the <see cref="CancellationTokenSource" /> class.
         /// </summary>
         /// <param name="cancelAfterMs">The duration in milliseconds to cancel after.</param>
         public CancellationTokenSource(long cancelAfterMs = -1)
@@ -75,7 +92,7 @@ namespace Apocraphy.Assets.Scripts.Threading
         }
 
         /// <summary>
-        /// Gets the token.
+        ///     Gets the token.
         /// </summary>
         /// <value>The token.</value>
         public CancellationToken Token
@@ -84,7 +101,7 @@ namespace Apocraphy.Assets.Scripts.Threading
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance is cancelled.
+        ///     Gets a value indicating whether this instance is cancelled.
         /// </summary>
         /// <value><c>true</c> if this instance is cancelled; otherwise, <c>false</c>.</value>
         public bool IsCancellationRequested
@@ -105,7 +122,7 @@ namespace Apocraphy.Assets.Scripts.Threading
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance can be cancelled.
+        ///     Gets a value indicating whether this instance can be cancelled.
         /// </summary>
         /// <value><c>true</c> if this instance can be cancelled; otherwise, <c>false</c>.</value>
         public bool CanBeCancelled

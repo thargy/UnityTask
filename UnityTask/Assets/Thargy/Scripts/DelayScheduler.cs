@@ -1,26 +1,43 @@
 #region Copyright (C) Craig Anthony Dean 2016 - All Rights Reserved
 
-// Copyright (C) Craig Anthony Dean 2016 - All Rights Reserved
-// Unauthorized copying of this file, via any medium is strictly prohibited
-// Proprietary and confidential
-// Written by Craig Anthony Dean<thargy@yahoo.com>
+// Copyright (C) Craig Anthony Dean 2016
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+// 
+// Written by Craig Anthony Dean <support@thargy.com>
 
 #endregion
 
 using System;
 using System.Collections.Generic;
 
-namespace Apocraphy.Assets.Scripts.Threading
+namespace Thargy.UnityTask
 {
     public partial class TaskManager
     {
         /// <summary>
-        /// The delayed actions to run.
+        ///     The delayed actions to run.
         /// </summary>
         private static readonly LinkedList<DelayedAction> _delayedActions = new LinkedList<DelayedAction>();
 
         /// <summary>
-        /// The delay scheduler allows scheduling of actions that will only run after a fixed point in Unity time.
+        ///     The delay scheduler allows scheduling of actions that will only run after a fixed point in Unity time.
         /// </summary>
         /// <seealso cref="ITaskScheduler" />
         private class DelayScheduler : ITaskScheduler
@@ -55,7 +72,8 @@ namespace Apocraphy.Assets.Scripts.Threading
                             // Find insertion point, to maintain order in list - this makes for fast scans during
                             // each FixedUpdate.
                             LinkedListNode<DelayedAction> node = _delayedActions.First;
-                            while (node != null && scheduleAfter > node.Value.ScheduleAfter)
+                            while ((node != null) &&
+                                   (scheduleAfter > node.Value.ScheduleAfter))
                                 node = node.Next;
 
                             if (node != null)
@@ -71,7 +89,7 @@ namespace Apocraphy.Assets.Scripts.Threading
             }
 
             /// <summary>
-            /// Returns a <see cref="System.String" /> that represents this instance.
+            ///     Returns a <see cref="System.String" /> that represents this instance.
             /// </summary>
             /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
             public override string ToString()
@@ -81,16 +99,16 @@ namespace Apocraphy.Assets.Scripts.Threading
         }
 
         /// <summary>
-        /// Holds an action scheduled to run after a delay.
+        ///     Holds an action scheduled to run after a delay.
         /// </summary>
         private class DelayedAction
         {
-            public readonly long ScheduleAfter;
-            private readonly ITaskScheduler _scheduler;
             private readonly Action _action;
+            private readonly ITaskScheduler _scheduler;
+            public readonly long ScheduleAfter;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="DelayedAction"/> class.
+            ///     Initializes a new instance of the <see cref="DelayedAction" /> class.
             /// </summary>
             /// <param name="scheduler">The scheduler.</param>
             /// <param name="action">The action.</param>
@@ -102,7 +120,7 @@ namespace Apocraphy.Assets.Scripts.Threading
             }
 
             /// <summary>
-            /// Executes this instance.
+            ///     Executes this instance.
             /// </summary>
             public void Schedule(bool onFixedUpdate = false)
             {
@@ -115,7 +133,7 @@ namespace Apocraphy.Assets.Scripts.Threading
             }
 
             /// <summary>
-            /// Returns a <see cref="System.String" /> that represents this instance.
+            ///     Returns a <see cref="System.String" /> that represents this instance.
             /// </summary>
             /// <returns>A <see cref="System.String" /> that represents this instance.</returns>
             public override string ToString()
