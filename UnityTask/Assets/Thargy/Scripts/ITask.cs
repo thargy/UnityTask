@@ -1,4 +1,4 @@
-#region Copyright (C) Craig Anthony Dean 2016 - All Rights Reserved
+#region Copyright (C) Craig Anthony Dean 2016
 
 // Copyright (C) Craig Anthony Dean 2016
 // 

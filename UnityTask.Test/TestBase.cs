@@ -1,4 +1,30 @@
-﻿using JetBrains.Annotations;
+﻿#region Copyright (C) Craig Anthony Dean 2016
+
+// Copyright (C) Craig Anthony Dean 2016
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+// 
+// Written by Craig Anthony Dean <support@thargy.com>
+
+#endregion
+
+using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Concurrent;
@@ -9,80 +35,87 @@ using System.Threading;
 using System.Threading.Tasks;
 using Thargy.UnityTask;
 using UnityEngine;
+using CancellationToken = System.Threading.CancellationToken;
+using CancellationTokenSource = System.Threading.CancellationTokenSource;
+using Task = System.Threading.Tasks.Task;
 
 namespace UnityTask.Test
 {
+    /// <summary>
+    ///     A base class for all tests, that initializes a <see cref="TaskManager" /> and allows simulation of the Unity
+    ///     UI Thread behaviour.
+    /// </summary>
     [TestClass]
     public class TestBase
     {
-        [NotNull]
-        private static readonly Type[] _emptyTypes = new Type[0];
-
         /// <summary>
-        /// The <see cref="TaskManager"/>.
+        ///     The <see cref="TaskManager" /> instance.
         /// </summary>
-        [NotNull]
-        protected static readonly TaskManager Manager;
+        [UsedImplicitly] [NotNull] protected static readonly TaskManager Manager;
 
         /// <summary>
-        /// The unity thread.
+        ///     The unity thread.
         /// </summary>
-        [NotNull]
-        private static readonly Thread _unityThread;
-
-        [NotNull]
-        private static readonly System.Threading.CancellationTokenSource _unityThreadCancellationTokenSource = new System.Threading.CancellationTokenSource();
-        
-        [NotNull]
-        private static readonly ConcurrentQueue<Action> _actions = new ConcurrentQueue<Action>();
-
-        [UsedImplicitly]
-        public static int UnityThreadID { get; private set; }
+        [NotNull] private static readonly Thread _unityThread;
 
         /// <summary>
-        /// The test stopwatch.
+        ///     The unity thread simulator cancellation token source, allows for canceling the simulation.
+        /// </summary>
+        [NotNull] private static readonly CancellationTokenSource _unityThreadCancellationTokenSource =
+            new CancellationTokenSource();
+
+        /// <summary>
+        ///     The actions that are queued to run on the unity thread.
+        /// </summary>
+        [NotNull] private static readonly ConcurrentQueue<Action> _actions = new ConcurrentQueue<Action>();
+
+        /// <summary>
+        ///     The test stopwatch.
         /// </summary>
         [NotNull] [UsedImplicitly] protected static readonly Stopwatch Stopwatch;
 
+        /// <summary>
+        ///     The awake action.
+        /// </summary>
         [NotNull] private static readonly Action _awakeAction;
+
+        /// <summary>
+        ///     The fixed update action.
+        /// </summary>
         [NotNull] private static readonly Action _fixedUpdateAction;
+
+        /// <summary>
+        ///     The update action.
+        /// </summary>
         [NotNull] private static readonly Action _updateAction;
+
+        /// <summary>
+        ///     The late update action.
+        /// </summary>
         [NotNull] private static readonly Action _lateUpdateAction;
+
+        /// <summary>
+        ///     The on validate action.
+        /// </summary>
         [NotNull] private static readonly Action _onValidateAction;
 
         /// <summary>
-        /// Gets an action that will call a <param name="name">Behaviour's method</param> on the specified 
-        /// <paramref name="instance"/>.
+        ///     Initializes static members of the <see cref="TestBase" /> class.
         /// </summary>
-        /// <param name="instance">The instance.</param>
-        /// <param name="name">The method name.</param>
-        /// <returns>Action.</returns>
-        private static Action GetAction(TaskManager instance, string name)
-        {
-            MethodInfo method = typeof (TaskManager).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.IsNotNull(method);
-
-            return Expression.Lambda<Action>(Expression.Call(Expression.Constant(instance), method)).Compile();
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the current thread is the unity thread.
-        /// </summary>
-        /// <value><see langword="true" /> if this thread is the unity thread; otherwise, <see langword="false" />.</value>
-        public static bool IsUnityThread => Thread.CurrentThread.ManagedThreadId == UnityThreadID;
-
         static TestBase()
         {
             // Create instance of TaskManager
-            Manager = typeof(TaskManager)
+            // ReSharper disable AssignNullToNotNullAttribute
+            Manager = typeof (TaskManager)
                 .GetConstructor(
                     BindingFlags.CreateInstance | BindingFlags.NonPublic | BindingFlags.Instance |
                     BindingFlags.OptionalParamBinding,
                     null,
-                    _emptyTypes,
+                    new Type[0],
                     null)
                 .Invoke(null) as TaskManager;
             Assert.IsNotNull(Manager);
+            // ReSharper restore AssignNullToNotNullAttribute
 
             _awakeAction = GetAction(Manager, "Awake");
             Assert.IsNotNull(_awakeAction);
@@ -100,7 +133,38 @@ namespace UnityTask.Test
         }
 
         /// <summary>
-        /// The unity thread simulator
+        ///     Gets the unity thread <see cref="Thread.ManagedThreadId">identifier</see>.
+        /// </summary>
+        /// <value>The unity thread identifier.</value>
+        [UsedImplicitly]
+        public static int UnityThreadID { get; private set; }
+
+        /// <summary>
+        ///     Gets a value indicating whether the current thread is the unity thread.
+        /// </summary>
+        /// <value><see langword="true" /> if this thread is the unity thread; otherwise, <see langword="false" />.</value>
+        [UsedImplicitly]
+        protected static bool IsUnityThread => Thread.CurrentThread.ManagedThreadId == UnityThreadID;
+
+        /// <summary>
+        ///     Gets an action that will call a
+        ///     <param name="name">Behaviour's method</param>
+        ///     on the specified
+        ///     <paramref name="instance" />.
+        /// </summary>
+        /// <param name="instance">The instance.</param>
+        /// <param name="name">The method name.</param>
+        /// <returns>An <see cref="Action" />.</returns>
+        private static Action GetAction(TaskManager instance, string name)
+        {
+            MethodInfo method = typeof (TaskManager).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(method);
+
+            return Expression.Lambda<Action>(Expression.Call(Expression.Constant(instance), method)).Compile();
+        }
+
+        /// <summary>
+        ///     The unity thread simulator.
         /// </summary>
         private static void Start()
         {
@@ -110,8 +174,8 @@ namespace UnityTask.Test
             // This will be the simulated Unity Thread, store it's ID.
             UnityThreadID = Thread.CurrentThread.ManagedThreadId;
 
-            // Run awake only once, setting the time first
-            Time.time = Stopwatch.ElapsedMilliseconds / 1000f;
+            // Run Awake() only once, setting the time first, this will initialise the TaskManager
+            Time.time = Stopwatch.ElapsedMilliseconds/1000f;
             _awakeAction();
 
             // Loop until aborted
@@ -135,14 +199,19 @@ namespace UnityTask.Test
             }
         }
 
+        /// <summary>
+        ///     Run once when test run starts.
+        /// </summary>
+        /// <param name="context">The context.</param>
         [AssemblyInitialize]
         public static void AssemblyInitialize(TestContext context)
         {
+            // Start simulating the unity UI thread.
             _unityThread.Start();
         }
 
         /// <summary>
-        /// Kills the unity thread once all tests have completed.
+        ///     Kills the unity thread once all tests have completed.
         /// </summary>
         [AssemblyCleanup]
         public static void AssemblyCleanup()
@@ -154,12 +223,19 @@ namespace UnityTask.Test
             Assert.IsTrue(_actions.IsEmpty);
         }
 
+        /// <summary>
+        ///     Invokes the specified action on the Unity thread.
+        /// </summary>
+        /// <param name="action">The action.</param>
+        /// <param name="time">The optional time.</param>
+        /// <param name="cancellationToken">The optional cancellation token.</param>
+        /// <returns>An awaitable <see cref="System.Threading.Tasks.Task" />.</returns>
         [UsedImplicitly]
         [NotNull]
-        protected System.Threading.Tasks.Task Invoke(
+        protected Task Invoke(
             Action action,
             float? time = null,
-            System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             if (cancellationToken.IsCancellationRequested)
@@ -178,7 +254,7 @@ namespace UnityTask.Test
 
                 try
                 {
-                    Time.time = time ?? Stopwatch.ElapsedMilliseconds / 1000f;
+                    Time.time = time ?? Stopwatch.ElapsedMilliseconds/1000f;
                     action();
                     if (cancellationToken.IsCancellationRequested)
                         tcs.SetCanceled();
@@ -200,32 +276,56 @@ namespace UnityTask.Test
             return tcs.Task;
         }
 
+        /// <summary>
+        ///     Invokes the <see cref="TaskManager">TaskManager's</see> <see cref="TaskManager.FixedUpdate" /> method.
+        /// </summary>
+        /// <param name="time">The optional time.</param>
+        /// <param name="cancellationToken">The optional cancellation token.</param>
+        /// <returns>An awaitable <see cref="System.Threading.Tasks.Task" />.</returns>
         [UsedImplicitly]
         [NotNull]
-        protected System.Threading.Tasks.Task FixedUpdate(
+        protected Task FixedUpdate(
             float? time = null,
-            System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+            CancellationToken cancellationToken = default(CancellationToken))
             => Invoke(_fixedUpdateAction, time, cancellationToken);
 
+        /// <summary>
+        ///     Invokes the <see cref="TaskManager">TaskManager's</see> <see cref="TaskManager.Update" /> method.
+        /// </summary>
+        /// <param name="time">The optional time.</param>
+        /// <param name="cancellationToken">The optional cancellation token.</param>
+        /// <returns>An awaitable <see cref="System.Threading.Tasks.Task" />.</returns>
         [UsedImplicitly]
         [NotNull]
-        protected System.Threading.Tasks.Task Update(
+        protected Task Update(
             float? time = null,
-            System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) 
+            CancellationToken cancellationToken = default(CancellationToken))
             => Invoke(_updateAction, time, cancellationToken);
 
+        /// <summary>
+        ///     Invokes the <see cref="TaskManager">TaskManager's</see> <see cref="TaskManager.LateUpdate" /> method.
+        /// </summary>
+        /// <param name="time">The optional time.</param>
+        /// <param name="cancellationToken">The optional cancellation token.</param>
+        /// <returns>An awaitable <see cref="System.Threading.Tasks.Task" />.</returns>
         [UsedImplicitly]
         [NotNull]
-        protected System.Threading.Tasks.Task LateUpdate(
+        protected Task LateUpdate(
             float? time = null,
-            System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+            CancellationToken cancellationToken = default(CancellationToken))
             => Invoke(_lateUpdateAction, time, cancellationToken);
 
+        /// <summary>
+        ///     Invokes the <see cref="TaskManager">TaskManager's</see> <see cref="TaskManager.OnValidate" /> method.
+        /// </summary>
+        /// <param name="time">The optional time.</param>
+        /// <param name="cancellationToken">The optional cancellation token.</param>
+        /// <returns>An awaitable <see cref="System.Threading.Tasks.Task" />.</returns>
         [UsedImplicitly]
         [NotNull]
-        protected System.Threading.Tasks.Task OnValidate(
+        protected Task OnValidate(
             float? time = null,
-            System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+            CancellationToken cancellationToken = default(CancellationToken))
             => Invoke(_onValidateAction, time, cancellationToken);
     }
 }

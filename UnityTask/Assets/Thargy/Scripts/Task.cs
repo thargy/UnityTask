@@ -1,4 +1,4 @@
-﻿#region Copyright (C) Craig Anthony Dean 2016 - All Rights Reserved
+﻿#region Copyright (C) Craig Anthony Dean 2016
 
 // Copyright (C) Craig Anthony Dean 2016
 // 
@@ -24,12 +24,12 @@
 
 #endregion
 
-using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace Thargy.UnityTask
 {
@@ -40,7 +40,9 @@ namespace Thargy.UnityTask
     {
         public delegate void FailedTaskDelegate([NotNull] Exception exception);
 
-        public delegate void FailedTaskWithCancellationDelegate([NotNull] Exception exception, CancellationToken cancellationToken);
+        public delegate void FailedTaskWithCancellationDelegate(
+            [NotNull] Exception exception,
+            CancellationToken cancellationToken);
 
         /// <summary>
         ///     Delegate of method for creating a task that runs but doesn't return a result.
@@ -71,8 +73,7 @@ namespace Thargy.UnityTask
         /// <summary>
         ///     All active tasks.
         /// </summary>
-        [NotNull] 
-        private static readonly OrderedDictionary _all = new OrderedDictionary();
+        [NotNull] private static readonly OrderedDictionary _all = new OrderedDictionary();
 
         /// <summary>
         ///     The Task ID Counter, for generating unique ids
@@ -80,12 +81,10 @@ namespace Thargy.UnityTask
         private static long _taskCounter;
 
         /// <summary>
-        /// A task in the cancelled state.
+        ///     A task in the cancelled state.
         /// </summary>
-        [NotNull]
-        [UsedImplicitly]
-        public static readonly Task Cancelled = new Task(
-            (TaskDelegate)null,
+        [NotNull] [UsedImplicitly] public static readonly Task Cancelled = new Task(
+            (TaskDelegate) null,
             TaskManager.Immediate,
             CancellationTokenSource.Cancelled.Token);
 
@@ -95,22 +94,19 @@ namespace Thargy.UnityTask
         private readonly long _id = Interlocked.Increment(ref _taskCounter);
 
         /// <summary>
-        /// The tasks to execute on failure.
+        ///     The tasks to execute on failure.
         /// </summary>
-        [NotNull]
-        private readonly Queue<Task> _onFailure = new Queue<Task>();
+        [NotNull] private readonly Queue<Task> _onFailure = new Queue<Task>();
 
         /// <summary>
-        /// The tasks to execute on success.
+        ///     The tasks to execute on success.
         /// </summary>
-        [NotNull]
-        private readonly Queue<Task> _onSuccess = new Queue<Task>();
+        [NotNull] private readonly Queue<Task> _onSuccess = new Queue<Task>();
 
         /// <summary>
         ///     The scheduler that the task is scheduled to run on.
         /// </summary>
-        [NotNull]
-        private readonly ITaskScheduler _scheduler;
+        [NotNull] private readonly ITaskScheduler _scheduler;
 
         /// <summary>
         ///     The associated cancellation token (if any).
@@ -120,10 +116,9 @@ namespace Thargy.UnityTask
         private int _state;
 
         /// <summary>
-        /// The action to execute (if any).
+        ///     The action to execute (if any).
         /// </summary>
-        [CanBeNull]
-        protected Action Action;
+        [CanBeNull] protected Action Action;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="Task" /> class.
@@ -173,19 +168,19 @@ namespace Thargy.UnityTask
             if (action == null)
                 throw new ArgumentNullException("action");
             Action = () =>
+            {
+                if (!ChangeState(TaskStatus.Running))
+                    return;
+                try
                 {
-                    if (!ChangeState(TaskStatus.Running))
-                        return;
-                    try
-                    {
-                        action(cancellationToken);
-                        SetResult(null);
-                    }
-                    catch (Exception e)
-                    {
-                        SetException(e);
-                    }
-                };
+                    action(cancellationToken);
+                    SetResult(null);
+                }
+                catch (Exception e)
+                {
+                    SetException(e);
+                }
+            };
         }
 
         /// <summary>
@@ -194,9 +189,11 @@ namespace Thargy.UnityTask
         /// <param name="scheduler">The scheduler.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <remarks>
-        /// <para>This task needs to be controlled manually as there is no action to execute.</para>
-        /// <para>The state can be progressed, either by canceling the <paramref name="cancellationToken"/>,
-        /// or calling <see cref="SetResult"/> or <see cref="SetException"/>.</para>
+        ///     <para>This task needs to be controlled manually as there is no action to execute.</para>
+        ///     <para>
+        ///         The state can be progressed, either by canceling the <paramref name="cancellationToken" />,
+        ///         or calling <see cref="SetResult" /> or <see cref="SetException" />.
+        ///     </para>
         /// </remarks>
         public Task(
             [CanBeNull] ITaskScheduler scheduler = null,
@@ -295,9 +292,9 @@ namespace Thargy.UnityTask
             {
                 // Check for cancellation
                 if (Token.IsCancellationRequested &&
-                    (_state != (int)TaskStatus.Cancelled))
+                    (_state != (int) TaskStatus.Cancelled))
                     ChangeState(TaskStatus.Cancelled);
-                return (TaskStatus)_state;
+                return (TaskStatus) _state;
             }
         }
 
@@ -312,7 +309,7 @@ namespace Thargy.UnityTask
             return
                 OnSuccess(
                     new Task(
-                        (TaskDelegate)null,
+                        (TaskDelegate) null,
                         TaskManager.AfterDelay(delay, TaskManager.Immediate),
                         Token));
         }
@@ -328,7 +325,7 @@ namespace Thargy.UnityTask
             return
                 OnSuccess(
                     new Task(
-                        (TaskDelegate)null,
+                        (TaskDelegate) null,
                         TaskManager.AfterDelay(millisecondsDelay, TaskManager.Immediate),
                         Token));
         }
@@ -359,7 +356,7 @@ namespace Thargy.UnityTask
             Task<TResult>.ResultTaskDelegate function,
             ITaskScheduler scheduler = null)
         {
-            return (ITask<TResult>)OnSuccess(new Task<TResult>(function, scheduler, Token));
+            return (ITask<TResult>) OnSuccess(new Task<TResult>(function, scheduler, Token));
         }
 
         [NotNull]
@@ -367,7 +364,7 @@ namespace Thargy.UnityTask
             Task<TResult>.ResultTaskWithCancellationDelegate function,
             ITaskScheduler scheduler = null)
         {
-            return (ITask<TResult>)OnSuccess(new Task<TResult>(function, scheduler, Token));
+            return (ITask<TResult>) OnSuccess(new Task<TResult>(function, scheduler, Token));
         }
 
         [NotNull]
@@ -375,7 +372,7 @@ namespace Thargy.UnityTask
             Task<TResult, TProgress>.ProgressTaskDelegate function,
             ITaskScheduler scheduler = null)
         {
-            return (ITask<TResult, TProgress>)OnSuccess(new Task<TResult, TProgress>(function, scheduler, Token));
+            return (ITask<TResult, TProgress>) OnSuccess(new Task<TResult, TProgress>(function, scheduler, Token));
         }
 
         [NotNull]
@@ -383,7 +380,7 @@ namespace Thargy.UnityTask
             Task<TResult, TProgress>.ProgressTaskWithCancellationDelegate function,
             ITaskScheduler scheduler = null)
         {
-            return (ITask<TResult, TProgress>)OnSuccess(new Task<TResult, TProgress>(function, scheduler, Token));
+            return (ITask<TResult, TProgress>) OnSuccess(new Task<TResult, TProgress>(function, scheduler, Token));
         }
 
         [NotNull]
@@ -404,7 +401,7 @@ namespace Thargy.UnityTask
             Task<TResult>.FailedResultTaskDelegate function,
             ITaskScheduler scheduler = null)
         {
-            return (ITask<TResult>)OnFailure(new Task<TResult>(() => function(Exception), scheduler, Token));
+            return (ITask<TResult>) OnFailure(new Task<TResult>(() => function(Exception), scheduler, Token));
         }
 
         [NotNull]
@@ -412,7 +409,7 @@ namespace Thargy.UnityTask
             Task<TResult>.FailedResultTaskWithCancellationDelegate function,
             ITaskScheduler scheduler = null)
         {
-            return (ITask<TResult>)OnFailure(new Task<TResult>(t => function(Exception, t), scheduler, Token));
+            return (ITask<TResult>) OnFailure(new Task<TResult>(t => function(Exception, t), scheduler, Token));
         }
 
         [NotNull]
@@ -474,7 +471,7 @@ namespace Thargy.UnityTask
             TimeSpan delay,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Start((TaskDelegate)null, TaskManager.AfterDelay(delay), cancellationToken);
+            return Start((TaskDelegate) null, TaskManager.AfterDelay(delay), cancellationToken);
         }
 
         /// <summary>
@@ -487,7 +484,7 @@ namespace Thargy.UnityTask
             int millisecondsDelay,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Start((TaskDelegate)null, TaskManager.AfterDelay(millisecondsDelay), cancellationToken);
+            return Start((TaskDelegate) null, TaskManager.AfterDelay(millisecondsDelay), cancellationToken);
         }
 
 
@@ -689,8 +686,8 @@ namespace Thargy.UnityTask
                     }
 
                 // Update state to new state.
-                if (Interlocked.CompareExchange(ref _state, (int)nextState, (int)previoustState) ==
-                    (int)previoustState)
+                if (Interlocked.CompareExchange(ref _state, (int) nextState, (int) previoustState) ==
+                    (int) previoustState)
                     return true;
 
                 // Set the task to failed - note we won't call callbacks as this is a bad state transition
@@ -701,16 +698,16 @@ namespace Thargy.UnityTask
                         new InvalidOperationException(
                             string.Format(
                                 "The task could not move to the '{1}' state as it was in the '{0}' state, and should have been in the {2} state.",
-                                (TaskStatus)_state,
+                                (TaskStatus) _state,
                                 nextState,
                                 previoustState)));
                 else
-                    Interlocked.Exchange(ref _state, (int)TaskStatus.Faulted);
+                    Interlocked.Exchange(ref _state, (int) TaskStatus.Faulted);
             }
             else
             {
                 // Set to cancelled.
-                Interlocked.Exchange(ref _state, (int)TaskStatus.Cancelled);
+                Interlocked.Exchange(ref _state, (int) TaskStatus.Cancelled);
                 Exception = null;
                 Result = null;
             }
@@ -885,18 +882,18 @@ namespace Thargy.UnityTask
             if (function == null)
                 throw new ArgumentNullException("function");
             Action = () =>
+            {
+                if (!ChangeState(TaskStatus.Running))
+                    return;
+                try
                 {
-                    if (!ChangeState(TaskStatus.Running))
-                        return;
-                    try
-                    {
-                        SetResult(function(cancellationToken));
-                    }
-                    catch (Exception e)
-                    {
-                        SetException(e);
-                    }
-                };
+                    SetResult(function(cancellationToken));
+                }
+                catch (Exception e)
+                {
+                    SetException(e);
+                }
+            };
         }
 
         public Task(ITaskScheduler scheduler = null, CancellationToken cancellationToken = default(CancellationToken))
@@ -906,7 +903,7 @@ namespace Thargy.UnityTask
 
         public new TResult Result
         {
-            get { return (TResult)base.Result; }
+            get { return (TResult) base.Result; }
         }
 
         /// <summary>
@@ -950,21 +947,21 @@ namespace Thargy.UnityTask
 
         public ITask<T> OnSuccess<T>(ContinuationResultTaskDelegate<T> function, ITaskScheduler scheduler = null)
         {
-            return (ITask<T>)OnSuccess(new Task<T>(() => function(Result), scheduler, Token));
+            return (ITask<T>) OnSuccess(new Task<T>(() => function(Result), scheduler, Token));
         }
 
         public ITask<T> OnSuccess<T>(
             ContinuationResultTaskWithCancellationDelegate<T> function,
             ITaskScheduler scheduler = null)
         {
-            return (ITask<T>)OnSuccess(new Task<T>(t => function(Result, t), scheduler, Token));
+            return (ITask<T>) OnSuccess(new Task<T>(t => function(Result, t), scheduler, Token));
         }
 
         public ITask<T, TProgress> OnSuccess<T, TProgress>(
             Task<T, TProgress>.ContinuationProgressTaskDelegate<TResult> function,
             ITaskScheduler scheduler = null)
         {
-            return (ITask<T, TProgress>)OnSuccess(new Task<T, TProgress>(n => function(Result, n), scheduler, Token));
+            return (ITask<T, TProgress>) OnSuccess(new Task<T, TProgress>(n => function(Result, n), scheduler, Token));
         }
 
         public ITask<T, TProgress> OnSuccess<T, TProgress>(
@@ -978,17 +975,17 @@ namespace Thargy.UnityTask
 
         public new ITask<TResult> Run()
         {
-            return (ITask<TResult>)base.Run();
+            return (ITask<TResult>) base.Run();
         }
 
         public Task<TResult> SetResult(TResult result = default(TResult))
         {
-            return (Task<TResult>)base.SetResult(result);
+            return (Task<TResult>) base.SetResult(result);
         }
 
         public new Task<TResult> SetException(Exception exception)
         {
-            return (Task<TResult>)base.SetException(exception);
+            return (Task<TResult>) base.SetException(exception);
         }
     }
 
@@ -1152,18 +1149,18 @@ namespace Thargy.UnityTask
             if (function == null)
                 throw new ArgumentNullException("function");
             Action = () =>
+            {
+                if (!ChangeState(TaskStatus.Running))
+                    return;
+                try
                 {
-                    if (!ChangeState(TaskStatus.Running))
-                        return;
-                    try
-                    {
-                        SetResult(function(Notify));
-                    }
-                    catch (Exception e)
-                    {
-                        SetException(e);
-                    }
-                };
+                    SetResult(function(Notify));
+                }
+                catch (Exception e)
+                {
+                    SetException(e);
+                }
+            };
         }
 
         /// <summary>
@@ -1180,18 +1177,18 @@ namespace Thargy.UnityTask
             if (function == null)
                 throw new ArgumentNullException("function");
             Action = () =>
+            {
+                if (!ChangeState(TaskStatus.Running))
+                    return;
+                try
                 {
-                    if (!ChangeState(TaskStatus.Running))
-                        return;
-                    try
-                    {
-                        SetResult(function(Notify, cancellationToken));
-                    }
-                    catch (Exception e)
-                    {
-                        SetException(e);
-                    }
-                };
+                    SetResult(function(Notify, cancellationToken));
+                }
+                catch (Exception e)
+                {
+                    SetException(e);
+                }
+            };
         }
 
         public Task(ITaskScheduler scheduler = null, CancellationToken cancellationToken = default(CancellationToken))
@@ -1259,7 +1256,7 @@ namespace Thargy.UnityTask
 
         public new ITask<TResult, TProgress> Run()
         {
-            return (ITask<TResult, TProgress>)base.Run();
+            return (ITask<TResult, TProgress>) base.Run();
         }
 
         /// <summary>

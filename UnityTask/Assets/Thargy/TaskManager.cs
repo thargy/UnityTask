@@ -1,4 +1,4 @@
-#region Copyright (C) Craig Anthony Dean 2016 - All Rights Reserved
+#region Copyright (C) Craig Anthony Dean 2016
 
 // Copyright (C) Craig Anthony Dean 2016
 // 
@@ -53,61 +53,40 @@ namespace Thargy.UnityTask
         ///     Will schedule <see cref="Task">tasks</see> to run during immediately.
         /// </summary>
         /// <value>The immediate scheduler.</value>
-        [NotNull]
-        public static readonly ITaskScheduler Immediate = new ImmediateScheduler();
+        [NotNull] public static readonly ITaskScheduler Immediate = new ImmediateScheduler();
 
         /// <summary>
         ///     Will schedule <see cref="Task">tasks</see> to run on the <see cref="System.Threading.ThreadPool">thread pool</see>.
         /// </summary>
         /// <value>The thread pool scheduler.</value>
-        [NotNull]
-        public static readonly ITaskScheduler ThreadPool = new ThreadScheduler();
+        [NotNull] public static readonly ITaskScheduler ThreadPool = new ThreadScheduler();
 
         /// <summary>
         ///     Will schedule <see cref="Task">tasks</see> to run on a dedicated <see cref="Thread">thread</see>.
         /// </summary>
         /// <value>The thread scheduler.</value>
-        [NotNull]
-        public static readonly ITaskScheduler Thread = new ThreadScheduler();
+        [NotNull] public static readonly ITaskScheduler Thread = new ThreadScheduler();
 
         /// <summary>
         ///     Maximum time to spend executing actions during a fixed update.
         /// </summary>
-        [Header("Batch Durations (ms)")]
-        [Tooltip("Maximum time to spend executing actions during a fixed update, once exceeded no more actions will" +
-                 "be run by the scheduler until the next Fixed Update.")]
-        [Range(1, 100)]
-        [UsedImplicitly]
-        public int FixedUpdateBatchDurationMs = 4;
-
-        /// <summary>
-        ///     Maximum time to spend executing actions during an update.
-        /// </summary>
-        [Tooltip("Maximum time to spend executing actions during an update, once exceeded no more actions will" +
-                 "be run by the scheduler until the next Fixed Update.")]
-        [Range(1, 100)]
-        [UsedImplicitly]
-        public int UpdateBatchDurationMs = 8;
+        [Header("Batch Durations (ms)")] [Tooltip("Maximum time to spend executing actions during a fixed update, once exceeded no more actions will" +
+                                                  "be run by the scheduler until the next Fixed Update.")] [Range(1, 100)] [UsedImplicitly] public int
+            FixedUpdateBatchDurationMs = 4;
 
         /// <summary>
         ///     Maximum time to spend executing actions during a late update.
         /// </summary>
         [Tooltip("Maximum time to spend executing actions during a late update, once exceeded no more actions will" +
-                 "be run by the scheduler until the next Fixed Update.")]
-        [Range(1, 100)]
-        [UsedImplicitly]
-        public int LateUpdateBatchDurationMs = 4;
-
+                 "be run by the scheduler until the next Fixed Update.")] [Range(1, 100)] [UsedImplicitly] public int
+            LateUpdateBatchDurationMs = 4;
 
         /// <summary>
-        ///     Called when the editor validates parameters for the <see cref="MonoBehaviour" />.
+        ///     Maximum time to spend executing actions during an update.
         /// </summary>
-        private void OnValidate()
-        {
-            FixedUpdateBatchDurationMs = Mathf.Clamp(FixedUpdateBatchDurationMs, 1, 100);
-            UpdateBatchDurationMs = Mathf.Clamp(UpdateBatchDurationMs, 1, 100);
-            LateUpdateBatchDurationMs = Mathf.Clamp(LateUpdateBatchDurationMs, 1, 100);
-        }
+        [Tooltip("Maximum time to spend executing actions during an update, once exceeded no more actions will" +
+                 "be run by the scheduler until the next Fixed Update.")] [Range(1, 100)] [UsedImplicitly] public int
+            UpdateBatchDurationMs = 8;
 
         /// <summary>
         ///     Prevents any instance of the <see cref="TaskManager" /> class from being created programmatically.
@@ -168,6 +147,17 @@ namespace Thargy.UnityTask
         public static ITaskScheduler OnLateUpdate
         {
             get { return _onLateUpdate; }
+        }
+
+
+        /// <summary>
+        ///     Called when the editor validates parameters for the <see cref="MonoBehaviour" />.
+        /// </summary>
+        private void OnValidate()
+        {
+            FixedUpdateBatchDurationMs = Mathf.Clamp(FixedUpdateBatchDurationMs, 1, 100);
+            UpdateBatchDurationMs = Mathf.Clamp(UpdateBatchDurationMs, 1, 100);
+            LateUpdateBatchDurationMs = Mathf.Clamp(LateUpdateBatchDurationMs, 1, 100);
         }
 
         /// <summary>
